@@ -1,0 +1,18 @@
+[project]
+name = "quant-wiki-pages"
+version = "0.1.0"
+requires-python = ">=3.11"
+dependencies = [
+    "mkdocs-material>=9.6,<10",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8,<9",
+    "pytest-playwright>=0.7,<1",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+addopts = "-ra"

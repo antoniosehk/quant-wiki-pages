@@ -1,0 +1,40 @@
+site_name: Quant Finance, Visually
+site_url: https://antoniosehk.github.io/quant-wiki-pages/en/
+docs_dir: docs/en
+theme:
+  name: material
+  language: en
+  custom_dir: overrides
+  features:
+    - navigation.footer
+    - navigation.indexes
+    - search.highlight
+    - content.tooltips
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      toggle:
+        icon: material/weather-night
+        name: Dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      toggle:
+        icon: material/weather-sunny
+        name: Light mode
+plugins:
+  - search:
+      lang: en
+markdown_extensions:
+  - attr_list
+  - md_in_html
+  - pymdownx.arithmatex:
+      generic: true
+extra:
+  locale: en
+  alternate:
+    - name: English
+      link: /quant-wiki-pages/en/
+      lang: en
+    - name: 简体中文
+      link: /quant-wiki-pages/zh/
+      lang: zh

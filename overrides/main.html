@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+
+{% block extrahead %}
+  {{ super() }}
+  <link rel="stylesheet" href="{{ 'assets/stylesheets/course.css' | url }}">
+  <script>
+    window.MathJax = { tex: { inlineMath: [['\\(', '\\)']], displayMath: [['\\[', '\\]']] }, options: { ignoreHtmlClass: '.*', processHtmlClass: 'arithmatex' } };
+  </script>
+  <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-mml-chtml.js"></script>
+  <script type="module" src="{{ 'assets/javascripts/course.js' | url }}"></script>
+{% endblock %}

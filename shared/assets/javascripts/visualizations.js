@@ -88,7 +88,8 @@ function shell(root, id, locale, control) {
     const button = document.createElement("button");
     button.type = "button";
     const prefix = locale.startsWith("zh") ? `例 ${index + 1}` : `Example ${index + 1}`;
-    button.textContent = `${prefix} · ${control.label[localeIndex(locale)]} = ${formatPreset(preset, control)}`;
+    const customLabel = control.presetLabels && control.presetLabels[localeIndex(locale)]?.[index];
+    button.textContent = customLabel || `${prefix} · ${control.label[localeIndex(locale)]} = ${formatPreset(preset, control)}`;
     button.addEventListener("click", () => {
       input.value = String(Math.round(preset / Number(control.step)) * Number(control.step));
       input.dispatchEvent(new Event("input", {bubbles: true}));
@@ -100,9 +101,11 @@ function shell(root, id, locale, control) {
   const prediction = document.createElement("fieldset");
   prediction.className = "quant-prediction";
   const legend = document.createElement("legend");
-  legend.textContent = locale.startsWith("zh")
-    ? `先预测：如果${control.label[1]}增加，主要结果会怎样？`
-    : `Predict first: if ${control.label[0].toLowerCase()} increases, what happens to the main result?`;
+  legend.textContent = control.question
+    ? control.question[localeIndex(locale)]
+    : (locale.startsWith("zh")
+      ? `先预测：如果${control.label[1]}增加，图中结果会怎样？`
+      : `Predict first: if ${control.label[0].toLowerCase()} increases, what happens to the charted result?`);
   prediction.append(legend);
   const choices = locale.startsWith("zh") ? [["down", "下降"], ["same", "不变"], ["up", "上升"], ["mixed", "视情况而定"]]
     : [["down", "Decrease"], ["same", "No change"], ["up", "Increase"], ["mixed", "It depends"]];
@@ -198,12 +201,19 @@ function renderCurve(root, id, locale) {
 }
 
 function renderDistribution(root, id, locale) {
-  const ui = shell(root, id, locale, {min: 10, max: 90, step: 1, value: 50, presets:[10,30,60,90], format:"percent", direction:"up", label: [id === "expectation-explorer" ? "Probability of gain" : "Tail weight", id === "expectation-explorer" ? "获利概率" : "尾部权重"]});
+  const expectation = id === "expectation-explorer";
+  const ui = shell(root, id, locale, {min: 10, max: 90, step: 1, value: 50, presets:[10,30,60,90], format:"percent", direction:"up",
+    label: [expectation ? "Probability of gain" : "Tail weight", expectation ? "获利概率" : "尾部权重"],
+    question: expectation ? ["A win pays +$2 and a loss pays −$1. If win probability rises, what happens to E[X]?", "赢一次赚 $2，输一次亏 $1。如果获利概率上升，期望值 E[X] 会怎样？"] : null,
+    presetLabels: expectation ? [
+      ["Example 1 · 10% wins", "Example 2 · 30% wins", "Example 3 · 60% wins", "Example 4 · 90% wins"],
+      ["例 1 · 10% 获胜", "例 2 · 30% 获胜", "例 3 · 60% 获胜", "例 4 · 90% 获胜"],
+    ] : null});
   axes(ui.svg, locale.startsWith("zh") ? "结果" : "Outcome", locale.startsWith("zh") ? "概率密度" : "Density");
   const draw = () => {
     ui.svg.querySelectorAll(".data-mark").forEach(x => x.remove());
     const q = Number(ui.input.value) / 100;
-    if (id === "expectation-explorer") {
+    if (expectation) {
       const loss = node("rect", {x: 150, y: 270-(1-q)*220, width: 110, height: (1-q)*220, class: "bar-two data-mark"});
       const gain = node("rect", {x: 410, y: 270-q*220, width: 110, height: q*220, class: "bar-one data-mark"});
       const expected=q*2-(1-q); ui.svg.append(loss, gain); ui.value.textContent = `E[X] = ${expected.toFixed(2)}`;

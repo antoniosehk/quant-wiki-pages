@@ -43,7 +43,7 @@ def test_mobile_prediction_worked_example_and_shared_progress(page, course_url):
     assert float(visual.locator(".quant-result").evaluate("e => getComputedStyle(e).opacity")) < 0.2
     reveal(visual)
     assert "E[X] = 0.50" in visual.locator("output").inner_text()
-    visual.get_by_role("button", name="Example 1 · Probability of gain = 10%", exact=True).click()
+    visual.get_by_role("button", name="Example 1 · 10% wins", exact=True).click()
     assert "E[X] = -0.70" in visual.locator("output").inner_text()
     worked = visual.locator(".quant-worked-example").inner_text()
     assert "E[X] = p·gain" in worked and "0.10×2" in worked
@@ -69,10 +69,13 @@ def test_representative_formulas_match_known_values(page, course_url):
         assert result in visual.locator("output").inner_text()
 
 
-def test_capstone_autosaves_without_network_upload(page, course_url):
+def test_guided_capstone_needs_no_typing_and_persists_choices(page, course_url):
     page.goto(f"{course_url}/en/activities/")
-    answer = "Does a 40 bp gross edge survive 3 × 10 bp turnover cost?"
-    field = page.locator('[data-capstone-field="question"]')
-    field.fill(answer)
+    assert page.locator(".quant-guided-activity textarea").count() == 0
+    page.get_by_role("button", name="Yes, profitable", exact=True).click()
+    assert "55% × $12 − 45% × $10 = $2.10/trade" in page.locator(".quant-calculation").inner_text()
+    page.get_by_role("button", name="Cost rises to $2.50 per trade", exact=True).click()
+    assert "−$0.40/trade" in page.locator(".quant-guided-finish").inner_text()
     page.reload()
-    assert page.locator('[data-capstone-field="question"]').input_value() == answer
+    assert page.get_by_role("button", name="Yes, profitable", exact=True).get_attribute("aria-pressed") == "true"
+    assert page.get_by_role("button", name="Cost rises to $2.50 per trade", exact=True).get_attribute("aria-pressed") == "true"

@@ -108,22 +108,113 @@ function mountProgressTools(progress) {
   host.prepend(panel);
 }
 
-function mountCapstone(progress) {
-  const form = document.querySelector(".quant-capstone");
-  if (!form) return;
-  const fields = [...form.querySelectorAll("textarea[data-capstone-field]")];
-  fields.forEach(field => {
-    field.value = String(progress.capstone[field.dataset.capstoneField] || "");
-    field.addEventListener("input", () => {
-      progress.capstone[field.dataset.capstoneField] = field.value.slice(0, 10000);
-      writeProgress(progress);
-    });
+function element(name, className, content) {
+  const result = document.createElement(name);
+  if (className) result.className = className;
+  if (content) result.textContent = content;
+  return result;
+}
+
+function mountGuidedActivity(progress) {
+  const root = document.querySelector(".quant-guided-activity");
+  if (!root) return;
+  const zh = root.dataset.locale === "zh";
+  const copy = zh ? {
+    title: "一个具体案例：这个策略值得交易吗？",
+    scenario: "过去 100 笔交易中：55 笔每笔平均赚 $12；45 笔每笔平均亏 $10；每笔完整交易成本为 $1.50。",
+    question: "先不计算：按这些数字重复交易，扣除成本后，平均每笔会赚钱吗？",
+    yes: "会赚钱", no: "不会赚钱",
+    correct: "预测正确。", retry: "这个猜想很合理；现在用数字检查。",
+    calculation: "逐步计算",
+    gross: "毛期望 = 55% × $12 − 45% × $10 = $2.10/笔",
+    net: "净期望 = $2.10 − $1.50 成本 = $0.60/笔",
+    total: "100 笔的期望净收益 = 100 × $0.60 = $60",
+    meaning: "结论：按给定数据，策略有正期望，但优势只有每笔 $0.60。",
+    riskQuestion: "哪一个变化会直接把净期望变成负数？",
+    risks: [
+      ["cost", "每笔成本升至 $2.50"],
+      ["order", "相同盈亏以不同顺序出现"],
+      ["capital", "投入的起始资金增加一倍"],
+    ],
+    riskCorrect: "正确：$2.10 − $2.50 = −$0.40/笔，策略不再可交易。",
+    riskOther: "这不会改变每笔期望值。真正的临界点是成本超过 $2.10/笔。",
+    summary: "你的 Capstone 已自动完成",
+    export: "导出这一页结论",
+  } : {
+    title: "One concrete case: is this strategy worth trading?",
+    scenario: "Across 100 past trades: 55 wins made $12 each on average; 45 losses lost $10 each; each round trip cost $1.50.",
+    question: "Before calculating: if these numbers repeat, will the strategy make money per trade after costs?",
+    yes: "Yes, profitable", no: "No, unprofitable",
+    correct: "Correct prediction.", retry: "That is a reasonable hypothesis; now check it with the numbers.",
+    calculation: "Worked calculation",
+    gross: "Gross expectation = 55% × $12 − 45% × $10 = $2.10/trade",
+    net: "Net expectation = $2.10 − $1.50 cost = $0.60/trade",
+    total: "Expected net profit over 100 trades = 100 × $0.60 = $60",
+    meaning: "Decision: the supplied data imply a positive edge, but the cushion is only $0.60 per trade.",
+    riskQuestion: "Which single change would directly make net expectation negative?",
+    risks: [
+      ["cost", "Cost rises to $2.50 per trade"],
+      ["order", "The same wins and losses arrive in a different order"],
+      ["capital", "Starting capital doubles"],
+    ],
+    riskCorrect: "Correct: $2.10 − $2.50 = −$0.40/trade, so it is no longer tradable.",
+    riskOther: "That does not change expectation per trade. The direct break-even point is cost above $2.10/trade.",
+    summary: "Your Capstone is complete automatically",
+    export: "Export this one-page conclusion",
+  };
+  const state = progress.capstone.guided && typeof progress.capstone.guided === "object"
+    ? progress.capstone.guided : {prediction: "", risk: ""};
+  progress.capstone.guided = state;
+  root.replaceChildren();
+  root.append(element("h2", "", copy.title), element("p", "quant-scenario", copy.scenario));
+
+  const prediction = element("fieldset", "quant-guided-step");
+  prediction.append(element("legend", "", `1 · ${copy.question}`));
+  const predictionFeedback = element("p", "quant-step-feedback");
+  const calculation = element("section", "quant-calculation");
+  calculation.append(element("h3", "", `2 · ${copy.calculation}`));
+  [copy.gross, copy.net, copy.total, copy.meaning].forEach(line => calculation.append(element("p", "", line)));
+  const predictionButtons = [["yes", copy.yes], ["no", copy.no]].map(([value, label]) => {
+    const button = element("button", "", label); button.type = "button";
+    button.addEventListener("click", () => {
+      state.prediction = value; writeProgress(progress); update();
+    }); prediction.append(button); return button;
   });
-  const exportButton = form.querySelector("[data-export-capstone]");
-  if (exportButton) exportButton.addEventListener("click", () => {
-    const body = fields.map(field => `## ${field.dataset.label}\n\n${field.value.trim() || "—"}`).join("\n\n");
-    download("quant-wiki-capstone.md", `# Quant Wiki Capstone\n\n${body}\n`, "text/markdown");
+  prediction.append(predictionFeedback);
+
+  const risk = element("fieldset", "quant-guided-step");
+  risk.append(element("legend", "", `3 · ${copy.riskQuestion}`));
+  const riskFeedback = element("p", "quant-step-feedback");
+  const riskButtons = copy.risks.map(([value, label]) => {
+    const button = element("button", "", label); button.type = "button";
+    button.addEventListener("click", () => { state.risk = value; writeProgress(progress); update(); });
+    risk.append(button); return button;
   });
+  risk.append(riskFeedback);
+
+  const finish = element("section", "quant-guided-finish");
+  finish.append(element("h3", "", copy.summary));
+  const summary = element("p", ""); finish.append(summary);
+  const exportButton = element("button", "", copy.export); exportButton.type = "button";
+  exportButton.addEventListener("click", () => {
+    const markdown = zh
+      ? `# 策略可交易性 Capstone\n\n## 问题\n给定 55% 胜率、平均盈利 $12、平均亏损 $10、每笔成本 $1.50，策略是否值得交易？\n\n## 计算\n${copy.gross}\n\n${copy.net}\n\n${copy.total}\n\n## 风险检查\n${state.risk === "cost" ? copy.riskCorrect : copy.riskOther}\n\n## 结论\n${copy.meaning}\n`
+      : `# Strategy Tradability Capstone\n\n## Question\nGiven a 55% win rate, $12 average win, $10 average loss, and $1.50 cost, is the strategy worth trading?\n\n## Calculation\n${copy.gross}\n\n${copy.net}\n\n${copy.total}\n\n## Risk check\n${state.risk === "cost" ? copy.riskCorrect : copy.riskOther}\n\n## Decision\n${copy.meaning}\n`;
+    download("quant-wiki-capstone.md", markdown, "text/markdown");
+  });
+  finish.append(exportButton);
+
+  function update() {
+    predictionButtons.forEach((button, index) => button.setAttribute("aria-pressed", String(state.prediction === (index ? "no" : "yes"))));
+    predictionFeedback.textContent = state.prediction ? (state.prediction === "yes" ? copy.correct : copy.retry) : "";
+    calculation.hidden = !state.prediction;
+    risk.hidden = !state.prediction;
+    riskButtons.forEach((button, index) => button.setAttribute("aria-pressed", String(state.risk === copy.risks[index][0])));
+    riskFeedback.textContent = state.risk ? (state.risk === "cost" ? copy.riskCorrect : copy.riskOther) : "";
+    finish.hidden = !state.risk;
+    summary.textContent = `${copy.total} ${state.risk === "cost" ? copy.riskCorrect : copy.riskOther}`;
+  }
+  root.append(prediction, calculation, risk, finish); update();
 }
 
 function rememberLanguage() {
@@ -139,7 +230,7 @@ function mount() {
   mountLearningEvents(progress);
   mountLessonProgress(progress);
   mountProgressTools(progress);
-  mountCapstone(progress);
+  mountGuidedActivity(progress);
   rememberLanguage();
 }
 

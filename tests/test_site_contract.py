@@ -46,5 +46,6 @@ def test_capstone_is_guided_instead_of_a_long_questionnaire():
     english = (ROOT / "docs/en/activities.md").read_text(encoding="utf-8")
     chinese = (ROOT / "docs/zh/activities.md").read_text(encoding="utf-8")
     assert "textarea" not in english + chinese
+    assert "导出这一页结论" not in english + chinese
     assert 'class="quant-guided-activity"' in english
     assert "不用填写长问卷" in chinese

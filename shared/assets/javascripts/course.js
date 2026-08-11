@@ -139,7 +139,6 @@ function mountGuidedActivity(progress) {
     riskCorrect: "正确：$2.10 − $2.50 = −$0.40/笔，策略不再可交易。",
     riskOther: "这不会改变每笔期望值。真正的临界点是成本超过 $2.10/笔。",
     summary: "你的 Capstone 已自动完成",
-    export: "导出这一页结论",
   } : {
     title: "One concrete case: is this strategy worth trading?",
     scenario: "Across 100 past trades: 55 wins made $12 each on average; 45 losses lost $10 each; each round trip cost $1.50.",
@@ -160,7 +159,6 @@ function mountGuidedActivity(progress) {
     riskCorrect: "Correct: $2.10 − $2.50 = −$0.40/trade, so it is no longer tradable.",
     riskOther: "That does not change expectation per trade. The direct break-even point is cost above $2.10/trade.",
     summary: "Your Capstone is complete automatically",
-    export: "Export this one-page conclusion",
   };
   const state = progress.capstone.guided && typeof progress.capstone.guided === "object"
     ? progress.capstone.guided : {prediction: "", risk: ""};
@@ -195,14 +193,6 @@ function mountGuidedActivity(progress) {
   const finish = element("section", "quant-guided-finish");
   finish.append(element("h3", "", copy.summary));
   const summary = element("p", ""); finish.append(summary);
-  const exportButton = element("button", "", copy.export); exportButton.type = "button";
-  exportButton.addEventListener("click", () => {
-    const markdown = zh
-      ? `# 策略可交易性 Capstone\n\n## 问题\n给定 55% 胜率、平均盈利 $12、平均亏损 $10、每笔成本 $1.50，策略是否值得交易？\n\n## 计算\n${copy.gross}\n\n${copy.net}\n\n${copy.total}\n\n## 风险检查\n${state.risk === "cost" ? copy.riskCorrect : copy.riskOther}\n\n## 结论\n${copy.meaning}\n`
-      : `# Strategy Tradability Capstone\n\n## Question\nGiven a 55% win rate, $12 average win, $10 average loss, and $1.50 cost, is the strategy worth trading?\n\n## Calculation\n${copy.gross}\n\n${copy.net}\n\n${copy.total}\n\n## Risk check\n${state.risk === "cost" ? copy.riskCorrect : copy.riskOther}\n\n## Decision\n${copy.meaning}\n`;
-    download("quant-wiki-capstone.md", markdown, "text/markdown");
-  });
-  finish.append(exportButton);
 
   function update() {
     predictionButtons.forEach((button, index) => button.setAttribute("aria-pressed", String(state.prediction === (index ? "no" : "yes"))));

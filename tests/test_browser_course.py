@@ -76,6 +76,7 @@ def test_guided_capstone_needs_no_typing_and_persists_choices(page, course_url):
     assert "55% × $12 − 45% × $10 = $2.10/trade" in page.locator(".quant-calculation").inner_text()
     page.get_by_role("button", name="Cost rises to $2.50 per trade", exact=True).click()
     assert "−$0.40/trade" in page.locator(".quant-guided-finish").inner_text()
+    assert page.get_by_role("button", name="Export this one-page conclusion", exact=True).count() == 0
     page.reload()
     assert page.get_by_role("button", name="Yes, profitable", exact=True).get_attribute("aria-pressed") == "true"
     assert page.get_by_role("button", name="Cost rises to $2.50 per trade", exact=True).get_attribute("aria-pressed") == "true"

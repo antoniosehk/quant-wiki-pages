@@ -88,13 +88,12 @@
 .quant-scenario { padding: 1rem; border-left: .3rem solid var(--quant-series-1); background: color-mix(in srgb, var(--quant-series-1) 8%, var(--md-default-bg-color)); font-size: 1.05rem; }
 .quant-guided-step, .quant-calculation, .quant-guided-finish { margin: 1rem 0; padding: 1rem; border: 1px solid var(--md-default-fg-color--lightest); border-radius: .45rem; }
 .quant-guided-step legend { padding-inline: .35rem; font-weight: 700; }
-.quant-guided-step button, .quant-guided-finish button { min-height: 48px; margin: .35rem .45rem .35rem 0; padding: .55rem .8rem; border: 1px solid var(--md-default-fg-color--light); border-radius: .35rem; color: var(--md-default-fg-color); background: var(--md-default-bg-color); font: inherit; }
+.quant-guided-step button { min-height: 48px; margin: .35rem .45rem .35rem 0; padding: .55rem .8rem; border: 1px solid var(--md-default-fg-color--light); border-radius: .35rem; color: var(--md-default-fg-color); background: var(--md-default-bg-color); font: inherit; }
 .quant-guided-step button[aria-pressed="true"] { outline: 3px solid var(--md-accent-fg-color); outline-offset: 1px; }
 .quant-step-feedback { min-height: 1.7rem; margin-bottom: 0; font-weight: 600; }
 .quant-calculation p { margin: .45rem 0; font-variant-numeric: tabular-nums; }
 .quant-calculation p:last-child { margin-top: .9rem; padding-top: .7rem; border-top: 1px solid var(--md-default-fg-color--lightest); font-weight: 700; }
 .quant-guided-finish { border-color: var(--quant-series-3); }
-.quant-guided-finish button { color: var(--md-primary-bg-color); background: var(--md-primary-fg-color); border-color: var(--md-primary-fg-color); font-weight: 700; }
 
 @media (max-width: 390px) {
   .md-content__inner { margin-inline: .2rem; }
